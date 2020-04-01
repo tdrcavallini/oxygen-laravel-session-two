@@ -1,79 +1,152 @@
-<p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
+## Knowledge Sharing - Laravel Session Two
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+#### 1) Configuration .env file
+For this section we will use Sqlite as a database.
+We need to change the DB_CONNECTION into .env and create a file to save this database file. (Absolute Path)
 
-## About Laravel
+```sh
+touch /Users/YOURNAME/Code/oxygen/storage/database/posts.sqlite
+```
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+###### Change the DB_CONNECTION and DB_DATABASE values ​​in the .env file.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+```sh
+DB_CONNECTION=sqlite
+DB_DATABASE=/Users/YOURNAME/Code/oxygen/storage/database/posts.sqlite
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+#### 2) Create a migration file
 
-## Learning Laravel
+```sh
+artisan make:migration create_posts_table
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+###### Add this scheme to the up method
+```sh
+Schema::create('posts', function (Blueprint $table) {
+    $table->id();
+    $table->string('title');
+    $table->mediumText('excerpt')->nullable();
+    $table->longText('description')->nullable();
+    $table->timestamps();
+    $table->softDeletes();
+});
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+###### Check other types of columns available
+https://laravel.com/docs/7.x/migrations#introduction
 
-## Laravel Sponsors
+```sh
+artisan migrate:install
+artisan migrate:fresh
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+###### Sqllite Client
+https://sqlitebrowser.org/dl/
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
-- [Appoly](https://www.appoly.co.uk)
-- [OP.GG](https://op.gg)
-- [云软科技](http://www.yunruan.ltd/)
+#### 3) Create a Model with Factory
+```sh
+artisan make:model Post -f
+```
+* -f - Factory
+ 
+```sh
+class Post extends Model {
+    use SoftDeletes;
+    protected $table = 'posts';
+    protected $fillable = ['title', 'excerpt', 'description', 'status'];
+}
+```
 
-## Contributing
+###### Read more about types of factory formatters
+https://github.com/fzaninotto/Faker
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Add the return of the PostFactory file
+```sh
+$factory->define(Post::class, function (Faker $faker) {
+    return [
+        'title' => $faker->paragraph(1),
+        'excerpt' => $faker->text,
+        'description' => $faker->paragraph(10),
+        'status' => 1
+    ];
+});
+```
 
-## Code of Conduct
+#### 4) Create a seed file
+```sh
+artisan make:seeder PostSeeder
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+This command is used to update new classes in a class map package. 
+```sh
+composer dump-autoload 
+```
 
-## Security Vulnerabilities
+We will use the factory to fill some content in the development environment. Edit file database/factories/PostFactory.php
+```sh
+factory(Post::class, 50)->create();
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+This command run the seed to database
+```sh
+artisan db:seed   
+```
 
-## License
+#### 5) Create a Route /posts
+```sh
+Route::get('/posts', function () {
+    return \App\Post::all();
+});
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### 6) create a controller PostController
+```sh
+artisan make:controller PostController 
+```
+
+Now we should adjust the route to call the controller
+```sh
+Route::get('/posts', 'PostController@index');	
+```
+
+#### 7) Create a view to list our posts
+```sh
+touch resources/views/posts.blade.php
+```
+
+This is a simple example of content and code using blade functions and html to list our posts
+```sh
+<html lang="en">
+<header>
+    <link href="{!! asset('css/app.css') !!}" rel="stylesheet">
+</header>
+<body>
+<div class="container">
+    <h1>Posts</h1>
+    @foreach($posts as $post)
+        <div class="row">
+            <div class="col-sm-12 mt-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>{{ $post->title }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ $post->created_at->format('d/m/Y H:i') }}</h6>
+                        <p>{{ $post->excerpt }}</p>
+                        <a href="#" class="card-link">read more</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
+</div>
+</body>
+</html>
+```
+
+#### 8) bonus -> install ui bootstrap
+```sh
+composer require laravel/ui
+artisan ui bootstrap
+npm install && npm run dev
+```
+
