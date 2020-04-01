@@ -1,5 +1,13 @@
 ## Knowledge Sharing - Laravel Session Two
 
+##### Our goal for this session:
+- Create a Migration
+- Create a Seeder
+- Create a Route /posts
+- Create a Post Controller
+- Create a Model - Post
+- Create a View to list our posts
+
 #### 1) Configuration .env file
 For this section we will use Sqlite as a database.
 We need to change the DB_CONNECTION into .env and create a file to save this database file. (Absolute Path)
